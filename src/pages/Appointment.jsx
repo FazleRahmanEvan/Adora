@@ -1,12 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
 import RelatedDoctors from "../components/RelatedDoctors";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const Appointment = () => {
   const { docId } = useParams();
-  const { doctors, currencySymbol } = useContext(AppContext);
+  const { doctors, currencySymbol, backendUrl, token, getDoctosData } =
+    useContext(AppContext);
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
   const [docInfo, setDocInfo] = useState(false);
@@ -14,7 +17,7 @@ const Appointment = () => {
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const fetchDocInfo = async () => {
     const docInfo = doctors.find((doc) => doc._id === docId);
@@ -26,6 +29,7 @@ const Appointment = () => {
 
     // getting current date
     let today = new Date();
+
     for (let i = 0; i < 7; i++) {
       // getting date with index
       let currentDate = new Date(today);
@@ -55,24 +59,26 @@ const Appointment = () => {
           minute: "2-digit",
         });
 
-        // let day = currentDate.getDate();
-        // let month = currentDate.getMonth() + 1;
-        // let year = currentDate.getFullYear();
+        let day = currentDate.getDate();
+        let month = currentDate.getMonth() + 1;
+        let year = currentDate.getFullYear();
 
-        // const slotDate = day + "_" + month + "_" + year;
-        // const slotTime = formattedTime;
+        const slotDate = day + "_" + month + "_" + year;
+        const slotTime = formattedTime;
 
-        // const isSlotAvailable =
-        //   docInfo.slots_booked[slotDate] &&
-        //   docInfo.slots_booked[slotDate].includes(slotTime)
-        //     ? false
-        //     : true;
+        const isSlotAvailable =
+          docInfo.slots_booked[slotDate] &&
+          docInfo.slots_booked[slotDate].includes(slotTime)
+            ? false
+            : true;
 
-        // Add slot to array
-        timeSlots.push({
-          datetime: new Date(currentDate),
-          time: formattedTime,
-        });
+        if (isSlotAvailable) {
+          // Add slot to array
+          timeSlots.push({
+            datetime: new Date(currentDate),
+            time: formattedTime,
+          });
+        }
 
         // Increment current time by 30 minutes
         currentDate.setMinutes(currentDate.getMinutes() + 30);
@@ -82,12 +88,49 @@ const Appointment = () => {
     }
   };
 
+  const bookAppointment = async () => {
+    if (!token) {
+      toast.warning("Login to book appointment");
+      return navigate("/login");
+    }
+
+    const date = docSlots[slotIndex][0].datetime;
+
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+
+    const slotDate = day + "_" + month + "_" + year;
+
+    try {
+      const { data } = await axios.post(
+        backendUrl + "/api/user/book-appointment",
+        { docId, slotDate, slotTime },
+        { headers: { token } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        getDoctosData();
+        navigate("/my-appointments");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
-    fetchDocInfo();
+    if (doctors.length > 0) {
+      fetchDocInfo();
+    }
   }, [doctors, docId]);
 
   useEffect(() => {
-    getAvailableSolts();
+    if (docInfo) {
+      getAvailableSolts();
+    }
   }, [docInfo]);
 
   return (
@@ -176,7 +219,7 @@ const Appointment = () => {
           </div>
 
           <button
-            // onClick={bookAppointment}
+            onClick={bookAppointment}
             className="bg-primary text-white text-sm font-semiBold px-20 py-3 rounded-full my-6"
           >
             Book an appointment
