@@ -70,35 +70,6 @@ const MyAppointments = () => {
     }
   };
 
-  // const initPay = (order) => {
-  //     const options = {
-  //         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-  //         amount: order.amount,
-  //         currency: order.currency,
-  //         name: 'Appointment Payment',
-  //         description: "Appointment Payment",
-  //         order_id: order.id,
-  //         receipt: order.receipt,
-  //         handler: async (response) => {
-
-  //             console.log(response)
-
-  //             try {
-  //                 const { data } = await axios.post(backendUrl + "/api/user/verifyRazorpay", response, { headers: { token } });
-  //                 if (data.success) {
-  //                     navigate('/my-appointments')
-  //                     getUserAppointments()
-  //                 }
-  //             } catch (error) {
-  //                 console.log(error)
-  //                 toast.error(error.message)
-  //             }
-  //         }
-  //     };
-  //     const rzp = new window.Razorpay(options);
-  //     rzp.open();
-  // };
-
   // Function to make payment using stripe
   const appointmentStripe = async (appointmentId) => {
     try {
@@ -127,14 +98,14 @@ const MyAppointments = () => {
 
   return (
     <div>
-      <p className="pb-3 mt-12 text-lg font-medium text-gray-600 border-b">
+      <p className="pb-3 mt-12 text-lg font-medium text-gray-600 ">
         My appointments
       </p>
       <div className="">
         {appointments.map((item, index) => (
           <div
             key={index}
-            className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-4 border-b"
+            className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-4 "
           >
             <div>
               <img
@@ -161,35 +132,31 @@ const MyAppointments = () => {
             <div></div>
             <div className="flex flex-col gap-2 justify-end text-sm text-center">
               {!item.cancelled &&
-                !item.payment &&
+                item.payment &&
                 !item.isCompleted &&
                 payment !== item._id && (
-                  <button
-                    onClick={() => setPayment(item._id)}
-                    className="text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300"
-                  >
-                    Pay Online
+                  <button className="sm:min-w-48 py-2 border rounded text-[#696969]  bg-[#EAEFFF]">
+                    Paid
                   </button>
                 )}
-              {!item.cancelled &&
-                !item.payment &&
-                !item.isCompleted &&
-                payment === item._id && (
-                  <button
-                    onClick={() => appointmentStripe(item._id)}
-                    className="text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-gray-100 hover:text-white transition-all duration-300 flex items-center justify-center"
-                  >
-                    <img
-                      className="max-w-20 max-h-5"
-                      src={assets.stripe_logo}
-                      alt=""
-                    />
-                  </button>
-                )}
-
-              {!item.cancelled && item.payment && !item.isCompleted && (
-                <button className="sm:min-w-48 py-2 border rounded text-[#696969]  bg-[#EAEFFF]">
-                  Paid
+              {!item.cancelled && !item.payment && !item.isCompleted && (
+                <button
+                  onClick={() => appointmentStripe(item._id)}
+                  className="text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-gray-100 hover:text-white transition-all duration-300 flex items-center justify-center"
+                >
+                  <img
+                    className="max-w-20 max-h-5"
+                    src={assets.stripe_logo}
+                    alt=""
+                  />
+                </button>
+              )}
+              {!item.cancelled && !item.payment && !item.isCompleted && (
+                <button
+                  onClick={() => setPayment(item._id)}
+                  className="text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300"
+                >
+                  Pay Online
                 </button>
               )}
 
@@ -199,7 +166,7 @@ const MyAppointments = () => {
                 </button>
               )}
 
-              {!item.cancelled && !item.isCompleted && (
+              {item.cancelled && !item.isCompleted && (
                 <button
                   onClick={() => cancelAppointment(item._id)}
                   className="text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300"

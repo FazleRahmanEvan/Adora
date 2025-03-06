@@ -43,6 +43,13 @@ const Navbar = () => {
           <li className="py-1">CONTACT</li>
           <hr className="border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden" />
         </NavLink>
+        <a className="mt-1 " href="https://adora-admin.vercel.app/">
+          <li>
+            <button className="border cursor-pointer rounded-lg pr-3 pl-3">
+              Admin
+            </button>
+          </li>
+        </a>
       </ul>
 
       <div className="flex items-center gap-4 ">
